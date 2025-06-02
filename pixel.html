@@ -1,0 +1,577 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pixel Boxing Match</title>
+<style>
+
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    background: #222;
+    color: #eee;
+    font-family: "Press Start 2P", monospace;
+    user-select: none;
+    overflow: hidden;
+  }
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+ 
+  #game {
+    position: relative;
+    width: 640px;
+    height: 360px;
+    margin: 40px auto;
+    background: linear-gradient(to top, #5d4037, #a1887f);
+    border: 4px solid #8d6e63;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  
+  #ring-floor {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 80px;
+    background: linear-gradient(90deg, #b7410e 25%, #d2691e 25%, #d2691e 50%, #b7410e 50%, #b7410e 75%, #d2691e 75%, #d2691e 100%);
+    background-size: 40px 80px;
+    box-shadow: inset 0 -8px 15px #4e342e;
+  }
+
+  /* Health Bars */
+  .health-bar-container {
+    position: absolute;
+    top: 15px;
+    width: 220px;
+    height: 24px;
+    border: 3px solid #ddd;
+    border-radius: 6px;
+    background: #333;
+    overflow: hidden;
+  }
+  #player-health-container {
+    left: 15px;
+  }
+  #ai-health-container {
+    right: 15px;
+  }
+  .health-bar {
+    height: 100%;
+    background: #76ff03;
+    transition: width 0.3s ease;
+  }
+
+  /* Characters */
+  .fighter {
+    position: absolute;
+    bottom: 80px;
+    width: 48px;
+    height: 72px;
+    image-rendering: pixelated;
+    user-select: none;
+  }
+
+  /* Player on left */
+  #player {
+    left: 80px;
+    transform: scaleX(1);
+  }
+
+  /* AI on right */
+  #ai {
+    right: 80px;
+    transform: scaleX(-1); /* flip horizontally */
+  }
+
+  /* Pixel sprites simplified with CSS blocks */
+  .head {
+    width: 24px;
+    height: 24px;
+    background: #fdd7b0;
+    border: 2px solid #a05a2c;
+    border-radius: 6px;
+    margin: 0 auto;
+  }
+  .body {
+    width: 32px;
+    height: 40px;
+    background: #c62828;
+    border: 2px solid #8b0000;
+    margin: 4px auto 0;
+    border-radius: 4px;
+  }
+  .arm {
+    position: absolute;
+    width: 12px;
+    height: 32px;
+    background: #c62828;
+    border: 2px solid #8b0000;
+    top: 24px;
+    border-radius: 3px;
+    transition: transform 0.1s ease;
+  }
+  .arm.left {
+    left: -14px;
+    transform-origin: top right;
+  }
+  .arm.right {
+    right: -14px;
+    transform-origin: top left;
+  }
+  .arm.punching {
+    transform: rotate(-45deg);
+  }
+  .arm.punching.power {
+    transform: rotate(-90deg);
+  }
+
+  /* Controls info */
+  #info {
+    text-align: center;
+    font-size: 14px;
+    margin-top: 20px;
+    color: #bbb;
+    font-family: monospace;
+  }
+
+  /* Difficulty prompt overlay */
+  #difficulty-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Press Start 2P', monospace;
+    z-index: 100;
+  }
+  #difficulty-overlay h2 {
+    margin-bottom: 24px;
+    font-size: 20px;
+  }
+  .difficulty-btn {
+    background: #8d6e63;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-size: 16px;
+    padding: 12px 30px;
+    margin: 8px;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.3s ease;
+  }
+  .difficulty-btn:hover {
+    background: #a1887f;
+  }
+
+  /* Game Over */
+  #game-over {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    color: white;
+    font-family: 'Press Start 2P', monospace;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 28px;
+    z-index: 200;
+    flex-direction: column;
+    display: none;
+  }
+  #game-over button {
+    margin-top: 20px;
+    font-size: 16px;
+    background: #8d6e63;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    padding: 10px 24px;
+    cursor: pointer;
+    user-select: none;
+  }
+  #game-over button:hover {
+    background: #a1887f;
+  }
+</style>
+</head>
+<body>
+
+<div id="game">
+  <div id="ring-floor"></div>
+
+  <div id="player" class="fighter">
+    <div class="head"></div>
+    <div class="body"></div>
+    <div class="arm left"></div>
+    <div class="arm right"></div>
+  </div>
+  <div id="ai" class="fighter">
+    <div class="head"></div>
+    <div class="body"></div>
+    <div class="arm left"></div>
+    <div class="arm right"></div>
+  </div>
+
+  <div id="player-health-container" class="health-bar-container">
+    <div id="player-health" class="health-bar"></div>
+  </div>
+  <div id="ai-health-container" class="health-bar-container">
+    <div id="ai-health" class="health-bar"></div>
+  </div>
+
+  <div id="game-over">
+    <div id="winner-text"></div>
+    <button id="restart-btn">Restart</button>
+  </div>
+</div>
+
+<div id="difficulty-overlay">
+  <h2>Choose Difficulty</h2>
+  <button class="difficulty-btn" data-level="easy">Easy</button>
+  <button class="difficulty-btn" data-level="medium">Medium</button>
+  <button class="difficulty-btn" data-level="hard">Hard</button>
+</div>
+
+<div id="info">
+  Controls: A/D = Move | Left Click = Punch | E = Power Punch
+</div>
+
+<script>
+(() => {
+  const gameWidth = 640;
+  const gameHeight = 360;
+  const ringFloorHeight = 80;
+  const playerSpeed = 4;
+  const powerPunchCooldown = 3000; // ms
+
+  let difficulty = null;
+
+  // Elements
+  const player = document.getElementById('player');
+  const ai = document.getElementById('ai');
+  const playerHealthBar = document.getElementById('player-health');
+  const aiHealthBar = document.getElementById('ai-health');
+  const difficultyOverlay = document.getElementById('difficulty-overlay');
+  const difficultyButtons = document.querySelectorAll('.difficulty-btn');
+  const gameOverScreen = document.getElementById('game-over');
+  const winnerText = document.getElementById('winner-text');
+  const restartBtn = document.getElementById('restart-btn');
+
+  // Fighter states
+  let playerState = {
+    x: 80,
+    health: 100,
+    isPunching: false,
+    isPowerPunching: false,
+    powerPunchReady: true,
+    punchCooldownTimer: 0,
+  };
+  let aiState = {
+    x: gameWidth - 80 - 48, // right side minus width
+    health: 100,
+    isPunching: false,
+    isPowerPunching: false,
+    punchCooldownTimer: 0,
+    difficulty: "easy",
+  };
+
+  // Input states
+  const keys = {
+    a: false,
+    d: false,
+    e: false,
+    mouseDown: false,
+  };
+
+  // Punch damage values
+  const punchDamage = 8;
+  const powerPunchDamage = 22;
+
+  // Timing
+  let lastTime = 0;
+
+  // Hitboxes (simple rectangles)
+  const fighterWidth = 48;
+  const fighterHeight = 72;
+
+  // Movement bounds (inside ring)
+  const leftBound = 40;
+  const rightBound = gameWidth - 40 - fighterWidth;
+
+  // Utility for clamping values
+  function clamp(val, min, max) {
+    return Math.min(Math.max(val, min), max);
+  }
+
+  // Apply positions to DOM
+  function renderFighters() {
+    player.style.left = playerState.x + "px";
+    ai.style.left = aiState.x + "px";
+  }
+
+  // Update health bars
+  function updateHealthBars() {
+    playerHealthBar.style.width = playerState.health + "%";
+    aiHealthBar.style.width = aiState.health + "%";
+    if(playerState.health > 60) playerHealthBar.style.backgroundColor = "#76ff03";
+    else if(playerState.health > 30) playerHealthBar.style.backgroundColor = "#ffeb3b";
+    else playerHealthBar.style.backgroundColor = "#f44336";
+
+    if(aiState.health > 60) aiHealthBar.style.backgroundColor = "#76ff03";
+    else if(aiState.health > 30) aiHealthBar.style.backgroundColor = "#ffeb3b";
+    else aiHealthBar.style.backgroundColor = "#f44336";
+  }
+
+  // Punch hit detection: simple overlap if fighters close and punch arm extended
+  function checkPunchHit(attacker, defender) {
+    // Attacker x range with punch extension:
+    // power punch extends more (20 px) than light punch (10 px)
+    const attackerFront = attacker.x + (attacker === playerState ? fighterWidth : 0);
+    const attackerPunchReach = attacker.isPowerPunching ? 20 : (attacker.isPunching ? 10 : 0);
+    if(attacker === playerState) {
+      // Player faces right
+      if(attackerPunchReach === 0) return false;
+      const punchReachX = attackerFront + attackerPunchReach;
+      // Defender x range
+      if(defender.x < punchReachX && defender.x + fighterWidth > attackerFront) return true;
+    } else {
+      // AI faces left
+      if(attackerPunchReach === 0) return false;
+      const punchReachX = attacker.x - attackerPunchReach;
+      // Defender x range
+      if(defender.x + fighterWidth > punchReachX && defender.x < attacker.x) return true;
+    }
+    return false;
+  }
+
+  // AI logic
+  function aiBehavior(dt) {
+    if(aiState.health <= 0) return;
+
+    // AI moves toward player but keeps some space
+    const distance = playerState.x - aiState.x;
+
+    // Movement speed varies by difficulty
+    let aiSpeed = 2;
+    if(difficulty === "medium") aiSpeed = 3;
+    else if(difficulty === "hard") aiSpeed = 4;
+
+    // Basic AI movement: approach or back off if too close
+    if(Math.abs(distance) > 60) {
+      if(distance > 0) {
+        aiState.x += aiSpeed * dt / 16;
+      } else {
+        aiState.x -= aiSpeed * dt / 16;
+      }
+      aiState.x = clamp(aiState.x, leftBound, rightBound);
+    } else {
+      // If close enough, maybe punch
+      if(!aiState.isPunching && !aiState.isPowerPunching) {
+        // Punch chance based on difficulty
+        const chance = difficulty === "easy" ? 0.01 : difficulty === "medium" ? 0.03 : 0.06;
+        if(Math.random() < chance) {
+          if(Math.random() < 0.6) {
+            aiState.isPunching = true;
+            setTimeout(() => { aiState.isPunching = false; }, 300);
+          } else {
+            // power punch only if cooldown done
+            if(aiState.punchCooldownTimer <= 0) {
+              aiState.isPowerPunching = true;
+              aiState.punchCooldownTimer = powerPunchCooldown;
+              setTimeout(() => { aiState.isPowerPunching = false; }, 500);
+            }
+          }
+        }
+      }
+    }
+
+    if(aiState.punchCooldownTimer > 0) {
+      aiState.punchCooldownTimer -= dt;
+    }
+  }
+
+  // Update arm animations
+  function updateArmAnimations() {
+    // Player arms
+    const playerLeftArm = player.querySelector('.arm.left');
+    const playerRightArm = player.querySelector('.arm.right');
+
+    if(playerState.isPowerPunching) {
+      playerRightArm.classList.add('punching', 'power');
+      playerLeftArm.classList.remove('punching', 'power');
+    } else if(playerState.isPunching) {
+      playerRightArm.classList.add('punching');
+      playerRightArm.classList.remove('power');
+      playerLeftArm.classList.remove('punching', 'power');
+    } else {
+      playerRightArm.classList.remove('punching', 'power');
+      playerLeftArm.classList.remove('punching', 'power');
+    }
+
+    // AI arms
+    const aiLeftArm = ai.querySelector('.arm.left');
+    const aiRightArm = ai.querySelector('.arm.right');
+
+    if(aiState.isPowerPunching) {
+      aiLeftArm.classList.add('punching', 'power');
+      aiRightArm.classList.remove('punching', 'power');
+    } else if(aiState.isPunching) {
+      aiLeftArm.classList.add('punching');
+      aiLeftArm.classList.remove('power');
+      aiRightArm.classList.remove('punching', 'power');
+    } else {
+      aiLeftArm.classList.remove('punching', 'power');
+      aiRightArm.classList.remove('punching', 'power');
+    }
+  }
+
+  // Handle punch cooldown for player power punch
+  function updatePlayerCooldown(dt) {
+    if(!playerState.powerPunchReady) {
+      playerState.punchCooldownTimer -= dt;
+      if(playerState.punchCooldownTimer <= 0) {
+        playerState.powerPunchReady = true;
+      }
+    }
+  }
+
+  // Game loop
+  function gameLoop(time = 0) {
+    if(!lastTime) lastTime = time;
+    const dt = time - lastTime;
+    lastTime = time;
+
+    if(playerState.health <= 0 || aiState.health <= 0) {
+      endGame();
+      return;
+    }
+
+    // Move player left/right
+    if(keys.a) {
+      playerState.x -= playerSpeed;
+      if(playerState.x < leftBound) playerState.x = leftBound;
+    }
+    if(keys.d) {
+      playerState.x += playerSpeed;
+      if(playerState.x > rightBound) playerState.x = rightBound;
+    }
+
+    // Update cooldown timers
+    updatePlayerCooldown(dt);
+
+    // AI behavior
+    aiBehavior(dt);
+
+    // Check punch hits
+    if(playerState.isPunching || playerState.isPowerPunching) {
+      if(checkPunchHit(playerState, aiState)) {
+        aiState.health -= playerState.isPowerPunching ? powerPunchDamage : punchDamage;
+        if(aiState.health < 0) aiState.health = 0;
+      }
+      // Reset player punch state after short delay
+      if(playerState.isPunching) {
+        setTimeout(() => { playerState.isPunching = false; }, 300);
+      }
+      if(playerState.isPowerPunching) {
+        setTimeout(() => { playerState.isPowerPunching = false; }, 500);
+      }
+    }
+
+    if(aiState.isPunching || aiState.isPowerPunching) {
+      if(checkPunchHit(aiState, playerState)) {
+        playerState.health -= aiState.isPowerPunching ? powerPunchDamage : punchDamage;
+        if(playerState.health < 0) playerState.health = 0;
+      }
+    }
+
+    renderFighters();
+    updateHealthBars();
+    updateArmAnimations();
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  // End game display
+  function endGame() {
+    let winner = playerState.health > 0 ? "You Win! 🏆" : "You Lose! 😢";
+    winnerText.textContent = winner;
+    gameOverScreen.style.display = "flex";
+  }
+
+  // Restart game
+  function restartGame() {
+    playerState.x = 80;
+    playerState.health = 100;
+    playerState.isPunching = false;
+    playerState.isPowerPunching = false;
+    playerState.powerPunchReady = true;
+    playerState.punchCooldownTimer = 0;
+
+    aiState.x = gameWidth - 80 - fighterWidth;
+    aiState.health = 100;
+    aiState.isPunching = false;
+    aiState.isPowerPunching = false;
+    aiState.punchCooldownTimer = 0;
+
+    gameOverScreen.style.display = "none";
+    lastTime = 0;
+    requestAnimationFrame(gameLoop);
+  }
+
+  // Input handlers
+  window.addEventListener('keydown', e => {
+    if(e.repeat) return;
+    if(e.key.toLowerCase() === 'a') keys.a = true;
+    if(e.key.toLowerCase() === 'd') keys.d = true;
+    if(e.key.toLowerCase() === 'e') {
+      if(playerState.powerPunchReady && !playerState.isPunching && !playerState.isPowerPunching) {
+        playerState.isPowerPunching = true;
+        playerState.powerPunchReady = false;
+        playerState.punchCooldownTimer = powerPunchCooldown;
+        setTimeout(() => { playerState.isPowerPunching = false; }, 500);
+      }
+    }
+  });
+  window.addEventListener('keyup', e => {
+    if(e.key.toLowerCase() === 'a') keys.a = false;
+    if(e.key.toLowerCase() === 'd') keys.d = false;
+  });
+
+  window.addEventListener('mousedown', e => {
+    if(e.button === 0) {
+      if(!playerState.isPunching && !playerState.isPowerPunching) {
+        playerState.isPunching = true;
+        setTimeout(() => { playerState.isPunching = false; }, 300);
+      }
+    }
+  });
+
+  // Difficulty selection
+  difficultyButtons.forEach(btn => {
+    btn.onclick = () => {
+      difficulty = btn.dataset.level;
+      aiState.difficulty = difficulty;
+      difficultyOverlay.style.display = "none";
+      restartGame();
+    }
+  });
+
+  restartBtn.onclick = () => {
+    difficultyOverlay.style.display = "flex";
+    gameOverScreen.style.display = "none";
+  };
+
+})();
+</script>
+
+</body>
+</html>

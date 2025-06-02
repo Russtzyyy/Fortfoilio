@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Color Catcher</title>
+  <style>
+    :root {
+      --main: #333446;
+      --icon: #7F8CAA;
+      --font-main: #B8CFCE;
+      --font-sub: #EAEFEF;
+    }
+
+    * {
+      box-sizing: border-box;
+      padding: 0;
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background-color: var(--main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      color: var(--font-main);
+      padding: 1rem;
+    }
+
+    .game-container {
+      text-align: center;
+      margin-top: 2rem;
+    }
+
+    canvas {
+      background-color: var(--font-sub);
+      border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    }
+
+    .title {
+      color: var(--font-main);
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .instructions {
+      color: var(--icon);
+      margin-top: 1rem;
+    }
+
+    .score {
+      margin-top: 0.5rem;
+      color: var(--font-main);
+      font-weight: bold;
+    }
+
+    .card {
+      margin-top: 2rem;
+      background-color: #2e2f3e;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+      color: var(--font-main);
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .card:hover {
+      transform: scale(1.02);
+    }
+
+    .card h3 {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .card .icon {
+      width: 24px;
+      height: 24px;
+      fill: var(--icon);
+    }
+
+    .back-btn {
+      margin-top: 1.5rem;
+      background-color: var(--icon);
+      border: none;
+      color: var(--main);
+      font-weight: bold;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      display: none;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container" id="gameScreen">
+    <h1 class="title">🎮 Color Catcher</h1>
+    <canvas id="gameCanvas" width="480" height="640"></canvas>
+    <p class="instructions">Move the paddle to catch the falling blocks!</p>
+    <p class="score">Score: <span id="score">0</span></p>
+  </div>
+
+
+  <div class="card" onclick="showPuzzleMode()">
+    <h3>
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 12v-2h2v2H6zm9 0v-2h2v2h-2zm-7-4h4v8h-4V8z" fill="currentColor"/>
+      </svg>
+      Logic Puzzle Mode
+    </h3>
+    <p>Solve logic puzzles in increasing difficulty levels.</p>
+  </div>
+
+ 
+  <div class="game-container hidden" id="puzzleScreen">
+    <h1 class="title">🧠 Puzzle Mode</h1>
+    <p class="instructions">Puzzle content goes here...</p>
+    <button class="back-btn" onclick="goBack()">⬅ Back to Game</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let score = 0;
+    const paddle = {
+      x: canvas.width / 2 - 50,
+      y: canvas.height - 30,
+      width: 100,
+      height: 10,
+      speed: 6
+    };
+
+    let rightPressed = false;
+    let leftPressed = false;
+    const blocks = [];
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') rightPressed = true;
+      if (e.key === 'ArrowLeft') leftPressed = true;
+    });
+    document.addEventListener('keyup', (e) => {
+      if (e.key === 'ArrowRight') rightPressed = false;
+      if (e.key === 'ArrowLeft') leftPressed = false;
+    });
+
+    function drawPaddle() {
+      ctx.fillStyle = '#7F8CAA';
+      ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+    }
+
+    function spawnBlock() {
+      const size = 20;
+      const x = Math.random() * (canvas.width - size);
+      blocks.push({ x, y: 0, size, speed: 2 + Math.random() * 2 });
+    }
+
+    function drawBlocks() {
+      ctx.fillStyle = '#333446';
+      blocks.forEach(block => {
+        ctx.beginPath();
+        ctx.arc(block.x, block.y, block.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function updateBlocks() {
+      blocks.forEach((block, index) => {
+        block.y += block.speed;
+
+        if (
+          block.y + block.size > paddle.y &&
+          block.x > paddle.x &&
+          block.x < paddle.x + paddle.width
+        ) {
+          blocks.splice(index, 1);
+          score++;
+          document.getElementById('score').textContent = score;
+        }
+
+        if (block.y > canvas.height) {
+          blocks.splice(index, 1);
+        }
+      });
+    }
+
+    function movePaddle() {
+      if (rightPressed && paddle.x + paddle.width < canvas.width) {
+        paddle.x += paddle.speed;
+      }
+      if (leftPressed && paddle.x > 0) {
+        paddle.x -= paddle.speed;
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      drawPaddle();
+      drawBlocks();
+
+      movePaddle();
+      updateBlocks();
+
+      requestAnimationFrame(draw);
+    }
+
+    setInterval(spawnBlock, 800);
+    draw();
+
+    // Toggle Views
+    function showPuzzleMode() {
+      document.getElementById('gameScreen').classList.add('hidden');
+      document.getElementById('puzzleScreen').classList.remove('hidden');
+    }
+
+    function goBack() {
+      document.getElementById('puzzleScreen').classList.add('hidden');
+      document.getElementById('gameScreen').classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>

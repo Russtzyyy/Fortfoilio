@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Portfolio</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+  <script type="module" src="background.js" defer></script>
+  <script type="module" src="script.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+</head>
+<body>
+    <canvas id="bg"></canvas>
+
+  <header>
+    <h1>Hi, I'm Russdev </h1>
+    <p>Creating interactive experiences that combine functionality and creativity
+and a sleek, contemporary interface for exploring my games and projects.</p>
+    <div class="buttons">
+      <button id="introBtn" class="active">Introduction</button>
+      <button id="projectsBtn">My Projects</button>
+    </div>
+  </header>
+
+<main id="content">
+    <section id="introSection" class="text-center fade">
+     <h2>About Me</h2>
+  <div class="about-box">
+    <p>
+      Hey there! I'm <strong>Russdev</strong>, a passionate developer who blends code with creativity. I love crafting fun, interactive games and web experiences that spark curiosity and challenge the mind.  
+    </p>
+    <p>
+      I specialize in JavaScript, React, and 3D visuals — turning ideas into playful, engaging digital creations.
+    </p>
+    <p>
+      Explore my projects and see what happens when creativity meets code!
+    </p>
+  </div>
+    </section>
+<section id="projectsSection" class="projects fade" style="display: none;">
+  <a href="mindreader.html" class="card" style="text-decoration: none; color: inherit;">
+    <h3>
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 12v-2h2v2H6zm9 0v-2h2v2h-2zm-7-4h4v8h-4V8z" fill="currentColor"/>
+      </svg>
+      Fun Shell
+    </h3>
+    <p>A fun game that guesses what you're thinking using logic.</p>
+  </a>
+
+  <a href="game.html" class="card" style="text-decoration: none; color: inherit;">
+    <h3>
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 12v-2h2v2H6zm9 0v-2h2v2h-2zm-7-4h4v8h-4V8z" fill="currentColor"/>
+      </svg>
+      Catch the Ball
+    </h3>
+    <p>Test your aim and reflexes in this shooting challenge.</p>
+  </a>
+
+  <a href="game2.html" class="card" style="text-decoration: none; color: inherit;">
+    <h3>
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 12v-2h2v2H6zm9 0v-2h2v2h-2zm-7-4h4v8h-4V8z" fill="currentColor"/>
+      </svg>
+      Color Catcher
+    </h3>
+    <p>Solve logic puzzles in increasing difficulty levels.</p>
+  </a>
+
+
+  <a href="runner-maze.html" class="card" style="text-decoration: none; color: inherit;">
+    <h3>
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 12v-2h2v2H6zm9 0v-2h2v2h-2zm-7-4h4v8h-4V8z" fill="currentColor"/>
+      </svg>
+      Maze Runner
+    </h3>
+    <p>Navigate the maze and find the exit before time runs out!</p>
+  </a>
+
+  <a href="memory-match.html" class="card" style="text-decoration: none; color: inherit;">
+    <h3>
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 12v-2h2v2H6zm9 0v-2h2v2h-2zm-7-4h4v8h-4V8z" fill="currentColor"/>
+      </svg>
+      Memory Match
+    </h3>
+    <p>Flip cards and find pairs in this memoryboosting game.</p>
+  </a>
+
+  <a href="cat.html" class="card" style="text-decoration: none; color: inherit;">
+    <h3>
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 12v-2h2v2H6zm9 0v-2h2v2h-2zm-7-4h4v8h-4V8z" fill="currentColor"/>
+      </svg>
+      Flappy cat 
+    </h3>
+    <p>Tap as fast as you can !</p>
+  </a>
+
+   <a href="pixel.html" class="card" style="text-decoration: none; color: inherit;">
+    <h3>
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 12v-2h2v2H6zm9 0v-2h2v2h-2zm-7-4h4v8h-4V8z" fill="currentColor"/>
+      </svg>
+      Reaction Racer
+    </h3>
+    <p>Tap as fast as you can when the light turns green!</p>
+  </a>
+  
+</section>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>

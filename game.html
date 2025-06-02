@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Catch the Ball Game</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background-color: #333446;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #B8CFCE;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      user-select: none;
+    }
+    .game-container {
+      position: relative;
+      height: 300px;
+      width: 260px;
+      background: #2c2f42;
+      border-radius: 16px;
+      box-shadow: 0 0 15px #7F8CAAaa;
+      padding: 20px;
+      text-align: center;
+      overflow: hidden;
+    }
+    h1 {
+      margin: 0 0 15px 0;
+      color: #B8CFCE;
+      text-shadow: 0 0 4px #EAEFEFaa;
+      font-weight: 700;
+    }
+    .score {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #7F8CAA;
+      text-shadow: 0 0 5px #EAEFEFaa;
+      z-index: 5;
+    }
+    .ball {
+      width: 35px;
+      height: 35px;
+      background: radial-gradient(circle at 10px 10px, #E67E22, #D35400);
+      border-radius: 50%;
+      box-shadow: inset -4px -4px 6px rgba(255, 255, 255, 0.7);
+      position: absolute;
+      top: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 3;
+    }
+    .paddle {
+      width: 80px;
+      height: 15px;
+      background: #7F8CAA;
+      border-radius: 12px;
+      position: absolute;
+      bottom: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 2px 6px #7F8CAAaa;
+      user-select: none;
+      z-index: 4;
+    }
+    p.instructions {
+      margin-top: 120px;
+      font-size: 0.85rem;
+      color: #B8CFCEcc;
+    }
+    .back-btn {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background-color: #7F8CAA;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 8px;
+      color: #EAEFEF;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      box-shadow: 0 2px 6px #7F8CAAaa;
+      z-index: 6;
+      transition: background-color 0.3s ease;
+    }
+    .back-btn:hover {
+      background-color: #B8CFCE;
+      color: #333446;
+    }
+  </style>
+</head>
+<body>
+   <button class="back-btn" onclick="window.location.href='index.html'">← Back</button>
+  <div class="game-container">
+    <div class="score">Score: 0</div>
+    <h1>Catch the Ball</h1>
+    <div class="ball"></div>
+    <div class="paddle"></div>
+    <p class="instructions">Move your mouse to catch the ball!</p>
+  </div>
+
+  <script>
+    const ball = document.querySelector('.ball');
+    const paddle = document.querySelector('.paddle');
+    const scoreDisplay = document.querySelector('.score');
+    const container = document.querySelector('.game-container');
+
+    let score = 0;
+    let ballX = container.clientWidth / 2;
+    let ballY = 50;
+    let ballSpeed = 3;
+
+    let paddleX = container.clientWidth / 2;
+    const paddleWidth = 80;
+    const paddleHeight = 15;
+    const ballSize = 35;
+
+    container.addEventListener('mousemove', (e) => {
+      const rect = container.getBoundingClientRect();
+      let mouseX = e.clientX - rect.left;
+      paddleX = Math.min(Math.max(mouseX, paddleWidth / 2), container.clientWidth - paddleWidth / 2);
+      paddle.style.left = `${paddleX}px`;
+      paddle.style.transform = 'translateX(-50%)';
+    });
+
+    function resetBall() {
+      ballX = Math.random() * (container.clientWidth - ballSize) + ballSize / 2;
+      ballY = 50;
+      ball.style.left = `${ballX}px`;
+      ball.style.top = `${ballY}px`;
+    }
+
+    function update() {
+      ballY += ballSpeed;
+      ball.style.top = `${ballY}px`;
+      ball.style.left = `${ballX}px`;
+
+      const paddleTop = container.clientHeight - 50 - paddleHeight;
+      if (
+        ballY + ballSize >= paddleTop && 
+        ballY + ballSize <= paddleTop + ballSpeed &&
+        ballX > paddleX - paddleWidth / 2 &&
+        ballX < paddleX + paddleWidth / 2
+      ) {
+        score++;
+        scoreDisplay.textContent = `Score: ${score}`;
+        resetBall();
+      } else if (ballY > container.clientHeight) {
+        resetBall();
+      }
+
+      requestAnimationFrame(update);
+    }
+
+    resetBall();
+    update();
+  </script>
+</body>
+</html>

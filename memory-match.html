@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Memory Match</title>
+  <style>
+    body {
+      background: #333446;
+      color: #B8CFCE;
+      font-family: sans-serif;
+      text-align: center;
+    }
+    #game {
+      display: grid;
+      gap: 10px;
+      justify-content: center;
+      margin: 30px auto;
+    }
+    .card {
+      width: 70px;
+      height: 70px;
+      background: #7F8CAA;
+      font-size: 32px;
+      line-height: 70px;
+      text-align: center;
+      color: #333446;
+      cursor: pointer;
+      border-radius: 10px;
+      user-select: none;
+    }
+    #back-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #7F8CAA;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    #back-btn:hover {
+      background-color: #6e7d9d;
+    }
+  </style>
+</head>
+<body>
+  <button id="back-btn" onclick="window.location.href='index.html'">⬅ Back to Main</button>
+
+  <h1>Memory Match</h1>
+  <p id="info">Level 1: Find all matching pairs</p>
+  <div id="game"></div>
+
+  <script>
+    const baseEmojis = ['🍎','🚗','🐶','🌟','🍕','🎈','🐱','🍀','🎮','🧩','🎲','💡','🚀','🎵','🍩','⚽'];
+    let level = 1;
+    let first = null, lock = false;
+    const game = document.getElementById('game');
+    const info = document.getElementById('info');
+
+    function startLevel() {
+      game.innerHTML = '';
+      first = null;
+      lock = false;
+      info.innerText = `Level ${level}: Find all matching pairs`;
+
+      const pairCount = 4 + level;
+      const emojis = shuffle([...baseEmojis].slice(0, pairCount));
+      const cards = shuffle([...emojis, ...emojis]);
+      setGrid(pairCount);
+
+      cards.forEach((emoji, i) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.dataset.emoji = emoji;
+        card.dataset.index = i;
+        card.innerText = '';
+        game.appendChild(card);
+      });
+    }
+
+    function shuffle(arr) {
+      return arr.sort(() => 0.5 - Math.random());
+    }
+
+    function setGrid(pairs) {
+      const cols = Math.ceil(Math.sqrt(pairs * 2));
+      game.style.gridTemplateColumns = `repeat(${cols}, 70px)`;
+    }
+
+    game.addEventListener('click', (e) => {
+      const el = e.target;
+      if (!el.classList.contains('card') || lock || el.innerText) return;
+
+      el.innerText = el.dataset.emoji;
+
+      if (!first) {
+        first = el;
+      } else {
+        lock = true;
+        if (first.dataset.emoji === el.dataset.emoji && first !== el) {
+          setTimeout(() => {
+            first.style.visibility = 'hidden';
+            el.style.visibility = 'hidden';
+            reset();
+
+            if (checkWin()) {
+              setTimeout(() => {
+                level++;
+                startLevel();
+              }, 1000);
+            }
+          }, 600);
+        } else {
+          setTimeout(() => {
+            first.innerText = '';
+            el.innerText = '';
+            reset();
+          }, 800);
+        }
+      }
+    });
+
+    function reset() {
+      first = null;
+      lock = false;
+    }
+
+    function checkWin() {
+      return [...game.children].every(card => card.style.visibility === 'hidden');
+    }
+
+    startLevel();
+  </script>
+</body>
+</html>
+    

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Maze Runner</title>
+  <style>
+    body {
+      background: #333446;
+      color: #B8CFCE;
+      font-family: sans-serif;
+      text-align: center;
+    }
+    #maze {
+      width: 300px;
+      height: 300px;
+      margin: 20px auto;
+      display: flex;
+      flex-wrap: wrap;
+      border: 3px solid #7F8CAA;
+    }
+    .cell {
+      width: 30px;
+      height: 30px;
+      border: 1px solid #7F8CAA;
+      box-sizing: border-box;
+    }
+    .player { background: #B8CFCE; }
+    .exit { background: #EAEFEF; box-shadow: 0 0 5px #EAEFEF; }
+    #status {
+      margin-top: 20px;
+      color: #EAEFEF;
+    }
+  </style>
+</head>
+<body>
+    <button id="back-btn" onclick="window.location.href='index.html'">⬅ Back to Main</button>
+  <h1>Maze Runner</h1>
+  <p>Use arrow keys to move</p>
+  <div id="maze"></div>
+  <p id="status"></p>
+
+  <script>
+    const maze = document.getElementById('maze');
+    const size = 10;
+    let playerPos = 0;
+
+    function drawMaze() {
+      maze.innerHTML = '';
+      for (let i = 0; i < size * size; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        if (i === playerPos) cell.classList.add('player');
+        if (i === size * size - 1) cell.classList.add('exit');
+        maze.appendChild(cell);
+      }
+    }
+
+    function move(dir) {
+      let newPos = playerPos;
+      if (dir === 'ArrowRight' && (playerPos + 1) % size !== 0) newPos++;
+      if (dir === 'ArrowLeft' && playerPos % size !== 0) newPos--;
+      if (dir === 'ArrowUp' && playerPos - size >= 0) newPos -= size;
+      if (dir === 'ArrowDown' && playerPos + size < size * size) newPos += size;
+      playerPos = newPos;
+      drawMaze();
+      if (playerPos === size * size - 1) {
+        document.getElementById('status').innerText = "🎉 You escaped the maze!";
+      }
+    }
+
+    document.addEventListener('keydown', (e) => move(e.key));
+    drawMaze();
+  </script>
+</body>
+</html>
